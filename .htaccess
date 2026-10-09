@@ -1,0 +1,27 @@
+# Convenience for XAMPP style installs, where the project sits in htdocs and is
+# reached as http://localhost/sdg/. Anything asked for here is sent on to the
+# public folder, which is the only directory that should be reachable.
+#
+# A redirect is used rather than an internal rewrite so that the address bar and
+# every link the portal generates agree with each other.
+#
+# On a production server, point the virtual host DocumentRoot straight at
+# public/ instead; this file is then unused and can be deleted.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never serve dot files such as .env
+    RewriteRule (^|/)\. - [F]
+
+    RewriteCond %{REQUEST_URI} !(^|/)public/
+    RewriteRule ^(.*)$ public/$1 [R=302,L]
+</IfModule>
+
+# Belt and braces: if rewriting is unavailable, application files are still not
+# listed or downloadable.
+Options -Indexes
+
+<FilesMatch "\.(env|json|lock|md|log|sqlite|yml|yaml)$">
+    Require all denied
+</FilesMatch>
