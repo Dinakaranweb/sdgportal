@@ -113,6 +113,27 @@ class Goal extends Model
         return $this->hasContent() ? $this->url : '#';
     }
 
+    /**
+     * Small version of the goal tile, for the dense strips in the footer and
+     * sidebar. Falls back to the full tile when no thumbnail was generated,
+     * for example when the logo was uploaded by hand.
+     */
+    public function getThumbAttribute(): ?string
+    {
+        if (blank($this->logo)) {
+            return null;
+        }
+
+        // Tiles cut by portal:slice-goal-tiles always come in both sizes, so
+        // the thumbnail can be named without asking the disk, which matters
+        // when the files live on S3.
+        if (preg_match('~^uploads/goals/(sdg-\d+\.png)$~', $this->logo, $match)) {
+            return 'uploads/goals/thumbs/'.$match[1];
+        }
+
+        return $this->logo;
+    }
+
     public function getDisplayTitleAttribute(): string
     {
         return filled($this->short_title) ? $this->short_title : $this->title;

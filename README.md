@@ -145,8 +145,15 @@ php artisan portal:install-brand      # institution-logo.jpg -> header logo + fa
 
 `portal:slice-goal-tiles` cuts the six by three artwork sheet into
 `uploads/goals/sdg-1.png` through `sdg-17.png` and points each goal record at
-its own tile. The combined emblem from the last cell is saved to
+its own tile. A 96px thumbnail of each goes to `uploads/goals/thumbs/`, used
+for the dense goal strips in the footer and sidebar so those do not pull the
+full sized tiles. The combined emblem from the last cell is saved to
 `uploads/brand/global-goals.png`.
+
+The grid is measured from the image rather than hard coded, so a replacement
+sheet at any resolution works. `--size` and `--thumb` set the output sizes
+(512 and 96 by default), and `--colours` additionally reads the flat colour out
+of each tile and stores it on the goal, so the page theme matches the artwork.
 
 `portal:install-brand` scales the logo lockup to a header sized PNG and crops
 the crest from it as a square favicon.

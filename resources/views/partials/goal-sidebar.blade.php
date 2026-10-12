@@ -53,12 +53,7 @@
         <div class="sidebar-note" style="padding-bottom:1.1rem">
             <div class="strip-row" style="grid-template-columns:repeat(auto-fit,minmax(34px,1fr))">
                 @foreach (($navGoals ?? collect()) as $other)
-                    <a href="{{ $other->link }}"
-                       style="--tile:{{ $other->color }};--tile-ink:{{ $other->text_color }};aspect-ratio:1;border-radius:var(--radius-sm);background:var(--tile);color:var(--tile-ink);display:grid;place-items:center;font-weight:800;font-size:.8rem;{{ $other->id === $goal->id ? 'outline:2px solid var(--ink);outline-offset:1px' : '' }}"
-                       title="Goal {{ $other->code }}: {{ $other->title }}">
-                        <span aria-hidden="true">{{ $other->code }}</span>
-                        <span class="visually-hidden">Goal {{ $other->code }}: {{ $other->title }}</span>
-                    </a>
+                    <x-site.goal-chip :goal="$other" :current="$other->id === $goal->id" />
                 @endforeach
             </div>
         </div>

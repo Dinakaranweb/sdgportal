@@ -208,12 +208,7 @@
             <h2 id="strip-heading">Jump to a goal</h2>
             <div class="strip-row">
                 @foreach ($navGoals as $stripGoal)
-                    <a href="{{ $stripGoal->link }}"
-                       style="--tile:{{ $stripGoal->color }};--tile-ink:{{ $stripGoal->text_color }}"
-                       title="Goal {{ $stripGoal->code }}: {{ $stripGoal->title }}">
-                        <span aria-hidden="true">{{ $stripGoal->code }}</span>
-                        <span class="visually-hidden">Goal {{ $stripGoal->code }}: {{ $stripGoal->title }}</span>
-                    </a>
+                    <x-site.goal-chip :goal="$stripGoal" />
                 @endforeach
             </div>
         </div>
