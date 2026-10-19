@@ -13,9 +13,44 @@ namespace App\Support;
 class BlockType
 {
     /**
-     * Fields a block may use: text, image, url, file, rows.
+     * Types that put the block level URL to their own use, so a separate read
+     * more button would be a second, competing link.
+     */
+    protected const CONSUMES_URL = ['highlight', 'image', 'video', 'file', 'cta'];
+
+    /**
+     * The registry, with an optional read more link added to every type that
+     * does not already use the block URL for something else.
      */
     public static function all(): array
+    {
+        static $resolved = null;
+
+        if ($resolved !== null) {
+            return $resolved;
+        }
+
+        $resolved = [];
+
+        foreach (static::definitions() as $key => $definition) {
+            if (! in_array($key, self::CONSUMES_URL, true)) {
+                $definition['fields'][] = 'url';
+                $definition['fields'][] = 'link_label';
+                $definition['labels']['url'] = 'Read more link';
+                $definition['labels']['link_label'] = 'Button text';
+                $definition['read_more'] = true;
+            }
+
+            $resolved[$key] = $definition;
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Fields a block may use: text, image, url, file, rows.
+     */
+    protected static function definitions(): array
     {
         return [
             'text' => [
@@ -234,6 +269,14 @@ class BlockType
     public static function fieldLabel(?string $type, string $field, string $fallback): string
     {
         return static::get($type)['labels'][$field] ?? $fallback;
+    }
+
+    /**
+     * Whether this type offers an optional read more button of its own.
+     */
+    public static function allowsReadMore(?string $type): bool
+    {
+        return (bool) (static::get($type)['read_more'] ?? false);
     }
 
     public static function usesRows(?string $type): bool

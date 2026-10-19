@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             GoalSeeder::class,
             ContentSeeder::class,
             MenuSeeder::class,
+            PageSeeder::class,
         ]);
 
         // Cut the bundled artwork into one tile per goal and prepare the

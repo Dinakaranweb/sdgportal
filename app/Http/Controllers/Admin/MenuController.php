@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Goal;
 use App\Models\GoalPage;
 use App\Models\MenuItem;
+use App\Models\Page;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,13 +22,17 @@ class MenuController extends Controller
         return view('admin.menu.index', [
             'menu' => $menu,
             'menus' => MenuItem::MENUS,
-            'items' => MenuItem::with(['children.goal', 'children.page', 'goal', 'page'])
+            'items' => MenuItem::with([
+                'children.goal', 'children.page', 'children.sitePage',
+                'goal', 'page', 'sitePage',
+            ])
                 ->where('menu', $menu)
                 ->whereNull('parent_id')
                 ->orderBy('sort_order')
                 ->get(),
             'goals' => Goal::ordered()->get(),
             'pages' => GoalPage::with('goal')->orderBy('goal_id')->orderBy('path')->get(),
+            'sitePages' => Page::standalone()->ordered()->get(),
         ]);
     }
 
@@ -84,6 +89,7 @@ class MenuController extends Controller
             'url' => ['nullable', 'string', 'max:500', 'required_if:link_type,url'],
             'goal_id' => ['nullable', 'integer', 'exists:goals,id', 'required_if:link_type,goal'],
             'goal_page_id' => ['nullable', 'integer', 'exists:goal_pages,id', 'required_if:link_type,page'],
+            'page_id' => ['nullable', 'integer', 'exists:pages,id', 'required_if:link_type,site_page'],
             'icon' => ['nullable', 'string', 'max:60'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
@@ -95,6 +101,7 @@ class MenuController extends Controller
             'url' => null,
             'goal_id' => null,
             'goal_page_id' => null,
+            'page_id' => null,
             'icon' => null,
             'sort_order' => null,
         ];

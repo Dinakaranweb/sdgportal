@@ -1,4 +1,4 @@
-@extends('layouts.admin', ['section' => $ownerType === 'goal' ? 'goals' : 'pages'])
+@extends('layouts.admin', ['section' => match ($ownerType) { 'goal' => 'goals', 'site-page' => 'sitepages', default => 'pages' }])
 
 @php
     use App\Support\BlockType;
@@ -85,7 +85,7 @@
                                 </div>
                                 @if (in_array('link_label', $fields, true))
                                     <div class="field">
-                                        <label for="link_label">Link text</label>
+                                        <label for="link_label">{{ $label('link_label', 'Link text') }}</label>
                                         <input type="text" id="link_label" name="link_label" value="{{ old('link_label', $block->link_label) }}" placeholder="Read more">
                                     </div>
                                 @endif

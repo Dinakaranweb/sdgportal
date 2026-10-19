@@ -8,6 +8,7 @@ use App\Models\ContentBlock;
 use App\Models\Goal;
 use App\Models\GoalPage;
 use App\Models\Media;
+use App\Models\Page;
 use App\Support\BlockType;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
@@ -42,7 +43,7 @@ class BlockController extends Controller
             return view('admin.blocks.pick', [
                 'ownerType' => $ownerType,
                 'owner' => $owner,
-                'goal' => $owner instanceof GoalPage ? $owner->goal : $owner,
+                'goal' => $owner instanceof GoalPage ? $owner->goal : ($owner instanceof Goal ? $owner : null),
                 'grouped' => BlockType::grouped(),
                 'backUrl' => $this->ownerEditUrl($ownerType, $owner).'#blocks',
             ]);
@@ -156,7 +157,7 @@ class BlockController extends Controller
         return [
             'ownerType' => $ownerType,
             'owner' => $owner,
-            'goal' => $owner instanceof GoalPage ? $owner->goal : $owner,
+            'goal' => $owner instanceof GoalPage ? $owner->goal : ($owner instanceof Goal ? $owner : null),
             'block' => $block,
             'definition' => BlockType::get($block->type),
             'library' => Media::latest()->limit(60)->get(),
@@ -300,6 +301,7 @@ class BlockController extends Controller
         return match ($ownerType) {
             'goal' => Goal::findOrFail($ownerId),
             'page' => GoalPage::with('goal')->findOrFail($ownerId),
+            'site-page' => Page::findOrFail($ownerId),
             default => abort(404),
         };
     }
@@ -314,8 +316,10 @@ class BlockController extends Controller
 
     protected function ownerEditUrl(string $ownerType, Model $owner): string
     {
-        return $ownerType === 'goal'
-            ? route('admin.goals.edit', $owner)
-            : route('admin.pages.edit', [$owner->goal_id, $owner]);
+        return match ($ownerType) {
+            'goal' => route('admin.goals.edit', $owner),
+            'site-page' => route('admin.sitepages.edit', $owner),
+            default => route('admin.pages.edit', [$owner->goal_id, $owner]),
+        };
     }
 }

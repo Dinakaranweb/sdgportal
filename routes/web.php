@@ -7,12 +7,14 @@ use App\Http\Controllers\Admin\GoalController;
 use App\Http\Controllers\Admin\GoalPageController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Site\GoalController as PublicGoalController;
 use App\Http\Controllers\Site\GoalPageController as PublicPageController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\PageController as PublicSitePageController;
 use App\Http\Controllers\Site\SearchController;
 use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -81,6 +83,13 @@ Route::prefix('control')->name('admin.')->group(function () {
             Route::post('{block}/toggle', [BlockController::class, 'toggle'])->name('toggle');
         });
 
+        Route::get('home-page', [AdminPageController::class, 'home'])->name('sitepages.home');
+        Route::post('pages/reorder', [AdminPageController::class, 'reorder'])->name('sitepages.reorder');
+        Route::resource('pages', AdminPageController::class)
+            ->parameters(['pages' => 'sitepage'])
+            ->names('sitepages')
+            ->except('show');
+
         Route::get('settings/{group?}', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings/{group}', [SettingController::class, 'update'])->name('settings.update');
 
@@ -99,3 +108,17 @@ Route::prefix('control')->name('admin.')->group(function () {
         Route::resource('users', UserController::class)->except('show');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Standalone pages
+|--------------------------------------------------------------------------
+|
+| Registered last so that every named route above takes precedence over a
+| page slug. Reserved slugs are blocked when a page is saved as well.
+|
+*/
+
+Route::get('/{page:slug}', PublicSitePageController::class)
+    ->where('page', '[A-Za-z0-9][A-Za-z0-9\-_]*')
+    ->name('pages.show');

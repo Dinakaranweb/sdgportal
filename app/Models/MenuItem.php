@@ -20,6 +20,7 @@ class MenuItem extends Model
         'url' => 'Custom URL',
         'goal' => 'Goal page',
         'page' => 'Sub menu / question page',
+        'site_page' => 'Site page',
         'home' => 'Home',
         'goals_index' => 'All goals',
         'none' => 'No link (heading only)',
@@ -33,6 +34,7 @@ class MenuItem extends Model
         'url',
         'goal_id',
         'goal_page_id',
+        'page_id',
         'icon',
         'open_in_new_tab',
         'sort_order',
@@ -65,6 +67,11 @@ class MenuItem extends Model
         return $this->belongsTo(GoalPage::class, 'goal_page_id');
     }
 
+    public function sitePage(): BelongsTo
+    {
+        return $this->belongsTo(Page::class, 'page_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
@@ -77,6 +84,7 @@ class MenuItem extends Model
             'goals_index' => route('goals.index'),
             'goal' => $this->goal?->url,
             'page' => $this->page?->url,
+            'site_page' => $this->sitePage?->url,
             'none' => null,
             default => portal_url($this->url),
         };

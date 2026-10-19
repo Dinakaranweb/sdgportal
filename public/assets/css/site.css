@@ -1295,3 +1295,11 @@ a.content-card:hover { text-decoration: none; transform: translateY(-3px); box-s
 }
 .footer-credit a { text-decoration: none; }
 .footer-credit a:hover { text-decoration: underline; }
+
+/* Optional read more button under a content block */
+.block-more { margin: 1.25rem 0 0; }
+.block.bg-soft .block-more,
+.block.bg-tint .block-more,
+.block.bg-outline .block-more,
+.block.bg-solid .block-more,
+.block.bg-dark .block-more { margin-bottom: 0; }

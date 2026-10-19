@@ -1,4 +1,4 @@
-@extends('layouts.admin', ['section' => $ownerType === 'goal' ? 'goals' : 'pages'])
+@extends('layouts.admin', ['section' => match ($ownerType) { 'goal' => 'goals', 'site-page' => 'sitepages', default => 'pages' }])
 
 @section('title', 'Add a block')
 @section('heading', 'Add a content block')
@@ -12,12 +12,14 @@
     <div class="card">
         <div class="card-head">
             <div>
-                <h2>Adding to: {{ $ownerType === 'goal' ? $owner->title : $owner->title }}</h2>
+                <h2>Adding to: {{ $owner->title }}</h2>
                 <p class="sub">
                     @if ($ownerType === 'goal')
                         Goal {{ $owner->code }} landing page
+                    @elseif ($ownerType === 'site-page')
+                        Site page &rarr; /{{ $owner->slug }}
                     @else
-                        Goal {{ $goal->code }} &rarr; /{{ $owner->path }}
+                        Goal {{ $goal?->code }} &rarr; /{{ $owner->path }}
                     @endif
                 </p>
             </div>

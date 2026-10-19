@@ -42,6 +42,9 @@
             <a class="ad-link {{ $section === 'pages' ? 'is-active' : '' }}" href="{{ route('admin.goals.index') }}?focus=pages">
                 <x-icon name="list" size="17" /> Sub menus <span class="count">{{ $pageCount }}</span>
             </a>
+            <a class="ad-link {{ $section === 'sitepages' ? 'is-active' : '' }}" href="{{ route('admin.sitepages.index') }}">
+                <x-icon name="file" size="17" /> Pages
+            </a>
             <a class="ad-link {{ $section === 'media' ? 'is-active' : '' }}" href="{{ route('admin.media.index') }}">
                 <x-icon name="image" size="17" /> Media library
             </a>

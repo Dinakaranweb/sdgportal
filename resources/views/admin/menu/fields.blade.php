@@ -45,6 +45,18 @@
 </div>
 
 <div class="field">
+    <label>Site page</label>
+    <select name="page_id">
+        <option value="">Not a site page link</option>
+        @foreach ($sitePages as $sitePage)
+            <option value="{{ $sitePage->id }}" @selected((int) old('page_id', $item->page_id) === $sitePage->id)>
+                {{ $sitePage->title }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
+<div class="field">
     <label>Nest under</label>
     <select name="parent_id">
         <option value="">Top level</option>

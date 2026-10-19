@@ -81,6 +81,16 @@
         </div>
     </section>
 
+    {{-- Everything above is driven by the home page settings. Anything added
+         as a content block in the control panel is rendered here, in order. --}}
+    @if ($homeBlocks->isNotEmpty())
+        <section class="section section--surface" aria-label="More from the portal">
+            <div class="shell">
+                <x-site.blocks :blocks="$homeBlocks" />
+            </div>
+        </section>
+    @endif
+
     @if ($featured->isNotEmpty())
         <section class="section section--soft" aria-labelledby="featured-heading">
             <div class="shell">
