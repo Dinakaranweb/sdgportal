@@ -161,52 +161,85 @@
 
     /* ---- simple table builder ---------------------------------------- */
 
-    document.querySelectorAll('[data-grid-table]').forEach(function (grid) {
-        grid.addEventListener('click', function (event) {
-            var addRow = event.target.closest('[data-gt-add-row]');
-            var addCol = event.target.closest('[data-gt-add-col]');
-            var dropRow = event.target.closest('[data-gt-drop-row]');
+    /**
+     * The grid a button belongs to. The add buttons sit outside the grid they
+     * act on, so this looks for one inside the enclosing fieldset.
+     */
+    function gridFor(element) {
+        var inside = element.closest('[data-grid-table]');
 
-            if (addRow) {
-                event.preventDefault();
-                var rows = grid.querySelectorAll('[data-gt-row]');
-                var last = rows[rows.length - 1];
-                if (!last) {
+        if (inside) {
+            return inside;
+        }
+
+        var holder = element.closest('fieldset') || element.closest('form');
+
+        return holder ? holder.querySelector('[data-grid-table]') : null;
+    }
+
+    // One listener on the document, so the buttons work wherever the form
+    // puts them and whenever they are added.
+    document.addEventListener('click', function (event) {
+        var addRow = event.target.closest('[data-gt-add-row]');
+        var addCol = event.target.closest('[data-gt-add-col]');
+        var dropRow = event.target.closest('[data-gt-drop-row]');
+
+        if (!addRow && !addCol && !dropRow) {
+            return;
+        }
+
+        var grid = gridFor(addRow || addCol || dropRow);
+
+        if (!grid) {
+            return;
+        }
+
+        if (addRow) {
+            event.preventDefault();
+            var rows = grid.querySelectorAll('[data-gt-row]');
+            var last = rows[rows.length - 1];
+
+            if (!last) {
+                return;
+            }
+
+            var clone = last.cloneNode(true);
+            clone.querySelectorAll('input').forEach(function (input) {
+                input.value = '';
+            });
+            last.parentNode.appendChild(clone);
+            reindexGrid(grid);
+        }
+
+        if (addCol) {
+            event.preventDefault();
+            grid.querySelectorAll('[data-gt-row], [data-gt-head]').forEach(function (row) {
+                var cells = row.querySelectorAll('input');
+
+                if (!cells.length) {
                     return;
                 }
-                var clone = last.cloneNode(true);
-                clone.querySelectorAll('input').forEach(function (input) {
-                    input.value = '';
-                });
-                last.parentNode.appendChild(clone);
+
+                // The new cell goes straight after the last one, which keeps
+                // it ahead of the row's remove button or the header's spacer.
+                var lastCell = cells[cells.length - 1];
+                var fresh = lastCell.cloneNode(true);
+                fresh.value = '';
+                lastCell.parentNode.insertBefore(fresh, lastCell.nextSibling);
+            });
+            reindexGrid(grid);
+        }
+
+        if (dropRow) {
+            event.preventDefault();
+            var target = dropRow.closest('[data-gt-row]');
+
+            if (target && grid.querySelectorAll('[data-gt-row]').length > 1) {
+                target.remove();
                 reindexGrid(grid);
             }
-
-            if (addCol) {
-                event.preventDefault();
-                grid.querySelectorAll('[data-gt-row], [data-gt-head]').forEach(function (row) {
-                    var inputs = row.querySelectorAll('input');
-                    if (!inputs.length) {
-                        return;
-                    }
-                    var clone = inputs[inputs.length - 1].cloneNode(true);
-                    clone.value = '';
-                    inputs[inputs.length - 1].parentNode.insertBefore(clone, row.querySelector('[data-gt-drop-row]'));
-                });
-                reindexGrid(grid);
-            }
-
-            if (dropRow) {
-                event.preventDefault();
-                var target = dropRow.closest('[data-gt-row]');
-                if (target && grid.querySelectorAll('[data-gt-row]').length > 1) {
-                    target.remove();
-                    reindexGrid(grid);
-                }
-            }
-        });
+        }
     });
-
     function reindexGrid(grid) {
         var head = grid.querySelector('[data-gt-head]');
 

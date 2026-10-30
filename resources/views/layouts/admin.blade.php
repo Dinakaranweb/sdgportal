@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="{{ asset('assets/vendor/summernote/summernote-lite.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/admin.css') }}">
+    <link rel="stylesheet" href="{{ portal_asset('assets/css/admin.css') }}">
 </head>
 <body>
 <div class="ad-shell">
@@ -114,8 +114,8 @@
 
 <script src="{{ asset('assets/vendor/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('assets/vendor/summernote/summernote-lite.min.js') }}"></script>
-<script src="{{ asset('assets/js/editor.js') }}" defer></script>
-<script src="{{ asset('assets/js/admin.js') }}" defer></script>
+<script src="{{ portal_asset('assets/js/editor.js') }}" defer></script>
+<script src="{{ portal_asset('assets/js/admin.js') }}" defer></script>
 @stack('scripts')
 </body>
 </html>

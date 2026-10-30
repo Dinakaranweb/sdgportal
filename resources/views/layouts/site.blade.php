@@ -62,7 +62,7 @@
         <link rel="stylesheet" href="{{ $fontUrl }}">
     @endif
 
-    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v={{ setting('theme_cache_key', '1') }}">
+    <link rel="stylesheet" href="{{ portal_asset('assets/css/site.css') }}">
 
     {{-- Theme tokens are written from the saved settings and, on a goal page,
          from that goal's own palette. --}}
@@ -314,7 +314,7 @@
     </div>
 </footer>
 
-<script src="{{ asset('assets/js/site.js') }}" defer></script>
+<script src="{{ portal_asset('assets/js/site.js') }}" defer></script>
 @stack('scripts')
 </body>
 </html>

@@ -15,6 +15,21 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('portal_asset')) {
+    /**
+     * A stylesheet or script of the portal's own, stamped with the time the
+     * file last changed so a browser cannot serve an old copy after an update.
+     */
+    function portal_asset(string $path): string
+    {
+        $url = asset($path);
+        $full = public_path($path);
+        $stamp = is_file($full) ? filemtime($full) : null;
+
+        return $stamp ? $url.'?v='.$stamp : $url;
+    }
+}
+
 if (! function_exists('media_disk_name')) {
     /**
      * The disk every upload is written to and read from.
