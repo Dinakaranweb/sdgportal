@@ -179,6 +179,7 @@ class BlockController extends Controller
             'image' => ['nullable', 'image', 'max:8192'],
             'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip,jpg,jpeg,png'],
             'rows' => ['nullable', 'array'],
+            'rows.*.upload' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip,jpg,jpeg,png,gif,webp'],
             'headers' => ['nullable', 'array'],
             'table_rows' => ['nullable', 'array'],
             'settings' => ['nullable', 'array'],
@@ -224,14 +225,43 @@ class BlockController extends Controller
         }
 
         $columns = array_keys(BlockType::columns($type));
+        $fileColumns = collect(BlockType::columns($type))
+            ->filter(fn ($column) => ($column['type'] ?? null) === 'file')
+            ->keys()
+            ->all();
 
-        $rows = collect($this->cleanRows($request->input('rows', [])))
-            ->map(function ($row) use ($columns) {
+        $raw = (array) $request->input('rows', []);
+
+        // Uploads are folded into their row before blank rows are discarded,
+        // because discarding renumbers the rows and the upload is addressed by
+        // its original position.
+        foreach ($fileColumns as $column) {
+            foreach (array_keys($raw) as $position) {
+                $upload = $request->file('rows.'.$position.'.upload');
+
+                if ($upload && $upload->isValid()) {
+                    $raw[$position][$column] = $this->storeUpload($upload, 'blocks');
+                    $raw[$position]['name'] = $upload->getClientOriginalName();
+                    $raw[$position]['size'] = $upload->getSize();
+                }
+            }
+        }
+
+        $rows = collect($this->cleanRows($raw))
+            ->map(function ($row) use ($columns, $fileColumns) {
                 $clean = [];
 
                 foreach ($columns as $column) {
                     $value = $row[$column] ?? null;
                     $clean[$column] = $column === 'body' ? clean_html((string) $value) : $value;
+                }
+
+                // Keep the display name and size that travel with a file.
+                foreach ($fileColumns as $column) {
+                    if (filled($clean[$column] ?? null)) {
+                        $clean['name'] = $row['name'] ?? basename((string) $clean[$column]);
+                        $clean['size'] = $row['size'] ?? null;
+                    }
                 }
 
                 return $clean;
@@ -246,16 +276,23 @@ class BlockController extends Controller
     {
         $input = (array) $request->input('settings', []);
 
+        // Fall back to the default whenever a setting is missing or is not one
+        // of the values on offer. The form only renders the controls that the
+        // block type needs, so most of these arrive absent.
+        $choose = function (string $key, array $allowed, string $default) use ($input): string {
+            $value = (string) ($input[$key] ?? $default);
+
+            // array_keys turns a numeric key such as "4" into an integer, so
+            // the permitted values are compared as strings.
+            return in_array($value, array_map('strval', $allowed), true) ? $value : $default;
+        };
+
         return [
-            'background' => in_array($input['background'] ?? 'none', array_keys(BlockType::backgrounds()), true)
-                ? $input['background']
-                : 'none',
-            'width' => in_array($input['width'] ?? 'normal', array_keys(BlockType::widths()), true)
-                ? $input['width']
-                : 'normal',
-            'columns' => in_array((string) ($input['columns'] ?? '3'), array_keys(BlockType::columnCounts()), true)
-                ? (string) $input['columns']
-                : '3',
+            'background' => $choose('background', array_keys(BlockType::backgrounds()), 'none'),
+            'width' => $choose('width', array_keys(BlockType::widths()), 'normal'),
+            'columns' => $choose('columns', array_keys(BlockType::columnCounts()), '3'),
+            'viewer_height' => $choose('viewer_height', array_keys(BlockType::viewerHeights()), 'medium'),
+            'image_style' => $choose('image_style', array_keys(BlockType::imageStyles()), 'cards'),
             'hide_title' => (bool) ($input['hide_title'] ?? false),
             'anchor' => preg_replace('/[^A-Za-z0-9\-_]/', '', (string) ($input['anchor'] ?? '')) ?: null,
         ];

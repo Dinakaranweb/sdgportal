@@ -118,6 +118,10 @@
                     window.portalEditor.buildAll(fresh);
                 }
 
+                if (window.portalRowFiles) {
+                    window.portalRowFiles.wire(fresh);
+                }
+
                 var first = fresh.querySelector('input, textarea, select');
                 if (first) {
                     first.focus();
@@ -277,6 +281,82 @@
             });
         }
     });
+
+    /* ---- per row file fields in the repeater ------------------------- */
+
+    function wireRowFiles(scope) {
+        (scope || document).querySelectorAll("[data-row-file]").forEach(function (field) {
+            if (field.getAttribute("data-row-file-ready")) {
+                return;
+            }
+            field.setAttribute("data-row-file-ready", "1");
+
+            var hidden = field.querySelector("[data-row-file-path]");
+            var current = field.querySelector("[data-row-file-current]");
+            var upload = field.querySelector("[data-row-file-input]");
+            var pick = field.querySelector("[data-row-file-pick]");
+
+            function show(text) {
+                if (!current) {
+                    return;
+                }
+                var keep = current.querySelector("[data-row-file-preview]");
+                current.textContent = "";
+                if (keep) {
+                    current.appendChild(keep);
+                }
+                current.appendChild(document.createTextNode(text));
+            }
+
+            var preview = field.querySelector("[data-row-file-preview]");
+
+            if (upload) {
+                upload.addEventListener("change", function () {
+                    var file = upload.files && upload.files[0];
+                    if (!file) {
+                        return;
+                    }
+                    if (hidden) {
+                        hidden.value = "";
+                    }
+                    if (pick) {
+                        pick.value = "";
+                    }
+                    show(file.name);
+
+                    if (preview && file.type.indexOf("image/") === 0) {
+                        var reader = new FileReader();
+                        reader.onload = function (event) {
+                            preview.src = event.target.result;
+                            preview.hidden = false;
+                            if (current && !current.contains(preview)) {
+                                current.insertBefore(preview, current.firstChild);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            if (pick) {
+                pick.addEventListener("change", function () {
+                    if (!pick.value) {
+                        return;
+                    }
+                    if (hidden) {
+                        hidden.value = pick.value;
+                    }
+                    if (upload) {
+                        upload.value = "";
+                    }
+                    show(pick.value.split("/").pop());
+                });
+            }
+        });
+    }
+
+    wireRowFiles(document);
+    window.portalRowFiles = { wire: wireRowFiles };
 
     /* ---- destructive actions ask first ------------------------------- */
 

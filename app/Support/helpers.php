@@ -80,6 +80,29 @@ if (! function_exists('opens_away')) {
     }
 }
 
+if (! function_exists('readable_size')) {
+    /**
+     * Format a byte count for display next to a download.
+     */
+    function readable_size(?int $bytes): ?string
+    {
+        if (! $bytes) {
+            return null;
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $size = (float) $bytes;
+        $i = 0;
+
+        while ($size >= 1024 && $i < count($units) - 1) {
+            $size /= 1024;
+            $i++;
+        }
+
+        return round($size, $size >= 10 || $i === 0 ? 0 : 1).' '.$units[$i];
+    }
+}
+
 if (! function_exists('is_pdf')) {
     /**
      * True when a path or URL points at a PDF.

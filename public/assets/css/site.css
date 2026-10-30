@@ -1303,3 +1303,116 @@ a.content-card:hover { text-decoration: none; transform: translateY(-3px); box-s
 .block.bg-outline .block-more,
 .block.bg-solid .block-more,
 .block.bg-dark .block-more { margin-bottom: 0; }
+
+/* A list of documents gathered under one heading */
+.doc-list { display: grid; gap: .6rem; }
+.doc-list .file-card { margin: 0; }
+
+/* Uploaded pictures shown as cards, each with its own description */
+.image-card-grid { display: grid; gap: 1.1rem; }
+.image-card {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    color: var(--ink);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+a.image-card:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    border-color: var(--goal, var(--brand));
+    box-shadow: 0 16px 34px rgba(16, 35, 29, .12);
+}
+.image-card .shot { display: block; aspect-ratio: 4 / 3; background: var(--surface-alt); overflow: hidden; }
+.image-card .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-card-body { display: flex; flex-direction: column; gap: .35rem; padding: .95rem 1.05rem 1.1rem; }
+.image-card-title { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; line-height: 1.3; }
+.image-card-text { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+.image-card .more {
+    margin-top: .35rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--goal, var(--brand));
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+/* A document read in place on the page */
+.doc-viewer {
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+}
+.doc-viewer object,
+.doc-viewer iframe { display: block; width: 100%; height: 100%; border: 0; }
+.doc-viewer object { background: #525659; }
+.doc-viewer--short object { height: 500px; }
+.doc-viewer--medium object { height: 720px; }
+.doc-viewer--tall object { height: 900px; }
+.doc-viewer--page object { height: 85vh; }
+.doc-viewer figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: .7rem 1rem;
+    border-top: 1px solid var(--line);
+    background: var(--surface-alt);
+    font-size: .86rem;
+    color: var(--muted);
+}
+.doc-viewer figcaption span { display: inline-flex; align-items: center; gap: .4rem; }
+.doc-viewer figcaption a { font-weight: 600; display: inline-flex; align-items: center; gap: .3rem; }
+
+@media (max-width: 720px) {
+    /* Phones rarely render an inline PDF, so the frame is kept short and the
+       caption link does the work. */
+    .doc-viewer--medium object,
+    .doc-viewer--tall object,
+    .doc-viewer--page object { height: 420px; }
+}
+
+/* A set of pictures sharing one description underneath */
+.image-set { display: grid; gap: 1rem; }
+.image-set-item { margin: 0; overflow: hidden; background: var(--surface-alt); }
+.image-set-item img { width: 100%; height: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+
+/* Cards: each picture framed in its own card */
+.image-set--cards { gap: 1rem; }
+.image-set--cards .image-set-item {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: .5rem;
+    box-shadow: 0 1px 2px rgba(16, 35, 29, .04);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.image-set--cards .image-set-item img { border-radius: var(--radius-sm); }
+.image-set--cards .image-set-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(16, 35, 29, .12);
+}
+
+/* Tiles: flush together, no frame */
+.image-set--tiles { gap: .35rem; }
+.image-set--tiles .image-set-item { border-radius: 0; }
+.image-set--tiles .image-set-item:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.image-set--tiles .image-set-item:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+.image-set-note { margin-top: 1.1rem; max-width: 74ch; }
+.image-set-note p { color: var(--muted); }
+
+@media (max-width: 560px) {
+    /* Side rounding would land mid column once the grid wraps */
+    .image-set--tiles .image-set-item,
+    .image-set--tiles .image-set-item:first-child,
+    .image-set--tiles .image-set-item:last-child { border-radius: var(--radius-sm); }
+}

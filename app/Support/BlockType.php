@@ -16,7 +16,7 @@ class BlockType
      * Types that put the block level URL to their own use, so a separate read
      * more button would be a second, competing link.
      */
-    protected const CONSUMES_URL = ['highlight', 'image', 'video', 'file', 'cta'];
+    protected const CONSUMES_URL = ['highlight', 'image', 'video', 'file', 'cta', 'document_viewer'];
 
     /**
      * The registry, with an optional read more link added to every type that
@@ -121,6 +121,52 @@ class BlockType
                 'hint' => 'A downloadable report, policy or certificate.',
                 'icon' => 'file',
                 'fields' => ['title', 'body', 'file', 'url', 'link_label'],
+            ],
+            'documents' => [
+                'label' => 'Document list',
+                'group' => 'Media',
+                'hint' => 'Several files under one heading, each with its own title.',
+                'icon' => 'file',
+                'fields' => ['title', 'subtitle', 'body', 'rows'],
+                'columns' => [
+                    'file' => ['label' => 'File', 'type' => 'file'],
+                    'label' => ['label' => 'Title shown', 'type' => 'text'],
+                    'note' => ['label' => 'Note', 'type' => 'text'],
+                ],
+            ],
+            'image_cards' => [
+                'label' => 'Image cards',
+                'group' => 'Media',
+                'hint' => 'Several uploaded pictures shown as cards, each with its own description.',
+                'icon' => 'cards',
+                'fields' => ['title', 'subtitle', 'body', 'rows'],
+                'columns' => [
+                    'image' => ['label' => 'Picture', 'type' => 'file', 'accept' => 'image/*'],
+                    'title' => ['label' => 'Caption', 'type' => 'text'],
+                    'body' => ['label' => 'Description', 'type' => 'textarea'],
+                    'url' => ['label' => 'Link', 'type' => 'url'],
+                ],
+            ],
+            'image_group' => [
+                'label' => 'Image set',
+                'group' => 'Media',
+                'hint' => 'Several pictures together with a single description underneath.',
+                'icon' => 'gallery',
+                'fields' => ['title', 'subtitle', 'rows', 'body'],
+                'labels' => ['body' => 'Description shown under the pictures'],
+                'image_style' => true,
+                'columns' => [
+                    'image' => ['label' => 'Picture', 'type' => 'file', 'accept' => 'image/*'],
+                    'alt' => ['label' => 'Alt text', 'type' => 'text'],
+                ],
+            ],
+            'document_viewer' => [
+                'label' => 'Document in the page',
+                'group' => 'Media',
+                'hint' => 'A PDF read in place on the page, without opening a new tab.',
+                'icon' => 'file',
+                'fields' => ['title', 'subtitle', 'body', 'file', 'url'],
+                'labels' => ['url' => 'Or a link to a PDF', 'file' => 'PDF to show'],
             ],
             'links' => [
                 'label' => 'Link list',
@@ -319,6 +365,38 @@ class BlockType
             'normal' => 'Normal',
             'narrow' => 'Narrow',
             'wide' => 'Wide',
+        ];
+    }
+
+    /**
+     * How tall an embedded document should be.
+     */
+    /**
+     * How a set of pictures is laid out.
+     */
+    public static function imageStyles(): array
+    {
+        return [
+            'cards' => 'Cards, each framed',
+            'tiles' => 'Tiles, flush together',
+        ];
+    }
+
+    /**
+     * Whether this type offers the cards or tiles choice.
+     */
+    public static function allowsImageStyle(?string $type): bool
+    {
+        return (bool) (static::get($type)['image_style'] ?? false);
+    }
+
+    public static function viewerHeights(): array
+    {
+        return [
+            'short' => 'Short (500px)',
+            'medium' => 'Medium (720px)',
+            'tall' => 'Tall (900px)',
+            'page' => 'Full screen height',
         ];
     }
 

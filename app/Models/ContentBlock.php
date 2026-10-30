@@ -126,6 +126,49 @@ class ContentBlock extends Model
     }
 
     /**
+     * Every stored file this block points at, including the ones held inside
+     * repeatable rows such as a document list.
+     *
+     * @return list<string>
+     */
+    public function ownedFiles(): array
+    {
+        return static::filesIn($this->image, $this->file_path, $this->data);
+    }
+
+    /**
+     * The same list built from a raw set of attribute values, so the state
+     * before an update can be compared with the state after it.
+     *
+     * @return list<string>
+     */
+    public static function filesIn(mixed $image, mixed $file, mixed $data): array
+    {
+        $paths = [$image, $file];
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        foreach ((is_array($data) ? ($data['rows'] ?? $data) : []) as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            foreach (['file', 'image'] as $key) {
+                if (filled($row[$key] ?? null)) {
+                    $paths[] = $row[$key];
+                }
+            }
+        }
+
+        return array_values(array_unique(array_filter(
+            $paths,
+            fn ($path) => is_string($path) && $path !== ''
+        )));
+    }
+
+    /**
      * True when the block carries nothing worth rendering.
      */
     public function isEmpty(): bool
@@ -141,14 +184,28 @@ class ContentBlock extends Model
 
     protected static function booted(): void
     {
-        static::deleting(function (self $block) {
-            // Only files uploaded through the block form are removed; anything
-            // picked from the shared media library stays in place.
-            foreach ([$block->image, $block->file_path] as $path) {
-                if ($path && str_starts_with($path, 'uploads/blocks/') && media_disk()->exists($path)) {
+        // Only files uploaded through the block form are removed; anything
+        // picked from the shared media library stays in place.
+        $discard = function (array $paths) {
+            foreach ($paths as $path) {
+                if (str_starts_with($path, 'uploads/blocks/') && media_disk()->exists($path)) {
                     media_disk()->delete($path);
                 }
             }
+        };
+
+        static::deleting(fn (self $block) => $discard($block->ownedFiles()));
+
+        // A file swapped out of a row, or a row removed altogether, would
+        // otherwise be left on the disk with nothing pointing at it.
+        static::updating(function (self $block) use ($discard) {
+            $before = static::filesIn(
+                $block->getRawOriginal('image'),
+                $block->getRawOriginal('file_path'),
+                $block->getRawOriginal('data')
+            );
+
+            $discard(array_diff($before, $block->ownedFiles()));
         });
     }
 }

@@ -136,28 +136,12 @@
                                                     </span>
                                                 </div>
                                                 <div class="rep-fields">
-                                                    @foreach ($columns as $key => $column)
-                                                        <div @class(['wide' => in_array($column['type'], ['textarea', 'richtext'], true)])>
-                                                            <label>{{ $column['label'] }}</label>
-                                                            @if ($column['type'] === 'textarea' || $column['type'] === 'richtext')
-                                                                <textarea data-rep-field="{{ $key }}" name="rows[{{ $index }}][{{ $key }}]" rows="{{ $column['type'] === 'richtext' ? 4 : 2 }}" @if ($column['type'] === 'richtext') data-editor="compact" @endif>{{ $row[$key] ?? '' }}</textarea>
-                                                            @elseif ($column['type'] === 'select')
-                                                                <select data-rep-field="{{ $key }}" name="rows[{{ $index }}][{{ $key }}]">
-                                                                    @foreach ($column['options'] as $value => $text)
-                                                                        <option value="{{ $value }}" @selected(($row[$key] ?? '') === $value)>{{ $text }}</option>
-                                                                    @endforeach
-                                                                </select>
-                                                            @elseif ($column['type'] === 'image')
-                                                                <input type="text" data-rep-field="{{ $key }}" name="rows[{{ $index }}][{{ $key }}]"
-                                                                       value="{{ $row[$key] ?? '' }}" placeholder="uploads/library/file.jpg"
-                                                                       style="font-family:var(--ad-mono);font-size:.8rem">
-                                                            @else
-                                                                <input type="{{ $column['type'] === 'number' ? 'number' : 'text' }}"
-                                                                       data-rep-field="{{ $key }}" name="rows[{{ $index }}][{{ $key }}]"
-                                                                       value="{{ $row[$key] ?? '' }}">
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
+                                                    @include('admin.blocks.row-fields', [
+                                                        'columns' => $columns,
+                                                        'row' => $row,
+                                                        'index' => $index,
+                                                        'library' => $library,
+                                                    ])
                                                 </div>
                                             </div>
                                         @empty
@@ -171,23 +155,12 @@
                                                     </span>
                                                 </div>
                                                 <div class="rep-fields">
-                                                    @foreach ($columns as $key => $column)
-                                                        <div @class(['wide' => in_array($column['type'], ['textarea', 'richtext'], true)])>
-                                                            <label>{{ $column['label'] }}</label>
-                                                            @if ($column['type'] === 'textarea' || $column['type'] === 'richtext')
-                                                                <textarea data-rep-field="{{ $key }}" name="rows[0][{{ $key }}]" rows="{{ $column['type'] === 'richtext' ? 4 : 2 }}" @if ($column['type'] === 'richtext') data-editor="compact" @endif></textarea>
-                                                            @elseif ($column['type'] === 'select')
-                                                                <select data-rep-field="{{ $key }}" name="rows[0][{{ $key }}]">
-                                                                    @foreach ($column['options'] as $value => $text)
-                                                                        <option value="{{ $value }}">{{ $text }}</option>
-                                                                    @endforeach
-                                                                </select>
-                                                            @else
-                                                                <input type="{{ $column['type'] === 'number' ? 'number' : 'text' }}"
-                                                                       data-rep-field="{{ $key }}" name="rows[0][{{ $key }}]">
-                                                            @endif
-                                                        </div>
-                                                    @endforeach
+                                                    @include('admin.blocks.row-fields', [
+                                                        'columns' => $columns,
+                                                        'row' => [],
+                                                        'index' => 0,
+                                                        'library' => $library,
+                                                    ])
                                                 </div>
                                             </div>
                                         @endforelse
@@ -204,22 +177,12 @@
                                                 </span>
                                             </div>
                                             <div class="rep-fields">
-                                                @foreach ($columns as $key => $column)
-                                                    <div @class(['wide' => in_array($column['type'], ['textarea', 'richtext'], true)])>
-                                                        <label>{{ $column['label'] }}</label>
-                                                        @if ($column['type'] === 'textarea' || $column['type'] === 'richtext')
-                                                            <textarea data-rep-field="{{ $key }}" rows="{{ $column['type'] === 'richtext' ? 4 : 2 }}" @if ($column['type'] === 'richtext') data-editor="compact" @endif></textarea>
-                                                        @elseif ($column['type'] === 'select')
-                                                            <select data-rep-field="{{ $key }}">
-                                                                @foreach ($column['options'] as $value => $text)
-                                                                    <option value="{{ $value }}">{{ $text }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                        @else
-                                                            <input type="{{ $column['type'] === 'number' ? 'number' : 'text' }}" data-rep-field="{{ $key }}">
-                                                        @endif
-                                                    </div>
-                                                @endforeach
+                                                @include('admin.blocks.row-fields', [
+                                                    'columns' => $columns,
+                                                    'row' => [],
+                                                    'index' => null,
+                                                    'library' => $library,
+                                                ])
                                             </div>
                                         </div>
                                     </template>
@@ -297,6 +260,28 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        @if (BlockType::allowsImageStyle($block->type))
+                            <div class="field">
+                                <label for="image_style">Picture layout</label>
+                                <select id="image_style" name="settings[image_style]">
+                                    @foreach (BlockType::imageStyles() as $key => $text)
+                                        <option value="{{ $key }}" @selected(old('settings.image_style', $block->setting('image_style', 'cards')) === $key)>{{ $text }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        @if ($block->type === 'document_viewer')
+                            <div class="field">
+                                <label for="viewer_height">Height on the page</label>
+                                <select id="viewer_height" name="settings[viewer_height]">
+                                    @foreach (BlockType::viewerHeights() as $key => $text)
+                                        <option value="{{ $key }}" @selected(old('settings.viewer_height', $block->setting('viewer_height', 'medium')) === $key)>{{ $text }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
 
                         @if (in_array('rows', $fields, true))
                             <div class="field">
