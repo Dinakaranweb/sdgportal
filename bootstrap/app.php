@@ -12,6 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Shared hosting puts a proxy in front of the application and ends the
+        // secure connection there, so without this the portal believes it is
+        // being reached over plain http and writes its stylesheet and script
+        // addresses that way. A browser refuses to load those on a secure page,
+        // which leaves the pages unstyled and the editor controls dead.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'staff' => EnsureUserIsStaff::class,
         ]);

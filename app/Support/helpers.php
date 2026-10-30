@@ -15,18 +15,77 @@ if (! function_exists('setting')) {
     }
 }
 
+if (! function_exists('portal_asset_file')) {
+    /**
+     * Where a public file actually sits on disk.
+     *
+     * A hosting account often serves the public folder under another name,
+     * public_html being the usual one, so the obvious path is only the first
+     * place worth looking.
+     */
+    function portal_asset_file(string $path): ?string
+    {
+        $candidates = [
+            public_path($path),
+            base_path('public/'.$path),
+            base_path('public_html/'.$path),
+            rtrim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/').'/'.ltrim($path, '/'),
+        ];
+
+        foreach ($candidates as $candidate) {
+            if ($candidate !== '/'.ltrim($path, '/') && is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+}
+
 if (! function_exists('portal_asset')) {
     /**
-     * A stylesheet or script of the portal's own, stamped with the time the
-     * file last changed so a browser cannot serve an old copy after an update.
+     * A stylesheet or script of the portal's own, stamped so that a browser
+     * cannot serve an old copy of it after the portal has been updated.
+     *
+     * The stamp is the time the file last changed. Where the file cannot be
+     * found on disk, which happens on hosting that serves the public folder
+     * from somewhere unexpected, the time the application was last deployed
+     * stands in: a weaker stamp, but one that still changes with an update,
+     * whereas no stamp at all would leave the old file in place for good.
      */
     function portal_asset(string $path): string
     {
         $url = asset($path);
-        $full = public_path($path);
-        $stamp = is_file($full) ? filemtime($full) : null;
+        $file = portal_asset_file($path);
 
-        return $stamp ? $url.'?v='.$stamp : $url;
+        return $url.'?v='.($file ? filemtime($file) : portal_build_stamp());
+    }
+}
+
+if (! function_exists('portal_build_stamp')) {
+    /**
+     * A marker of the running copy of the portal, used when an asset cannot be
+     * measured directly. Composer's autoloader is rewritten on every install
+     * and the routes file changes with any update, so between them they move
+     * whenever the portal does.
+     */
+    function portal_build_stamp(): string
+    {
+        static $stamp = null;
+
+        if ($stamp !== null) {
+            return $stamp;
+        }
+
+        $times = [];
+
+        foreach ([base_path('vendor/autoload.php'), base_path('routes/web.php')] as $marker) {
+            if (is_file($marker)) {
+                $times[] = filemtime($marker);
+            }
+        }
+
+        return $stamp = (string) ($times ? max($times) : 1);
     }
 }
 
