@@ -1,4 +1,4 @@
-<div class="cta-band">
+<div class="cta-band fit-{{ $block->setting('image_fit', \App\Support\BlockType::defaultImageFit($block->type)) }}">
     @if ($src = $block->image_url)
         <img src="{{ $src }}" alt="" loading="lazy">
     @endif

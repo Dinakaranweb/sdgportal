@@ -2,7 +2,7 @@
     <div class="block-intro">{!! rich_text($block->body) !!}</div>
 @endif
 
-<div class="image-card-grid cols-{{ $block->setting('columns', '3') }}">
+<div class="image-card-grid cols-{{ $block->setting('columns', '3') }} fit-{{ $block->setting('image_fit', \App\Support\BlockType::defaultImageFit($block->type)) }}">
     @foreach ($block->rows() as $row)
         @php
             $src = media_url($row['image'] ?? null);

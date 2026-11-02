@@ -23,3 +23,23 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Upload limits, for a server running PHP as an Apache module. FastCGI and FPM
+# ignore these and read .user.ini beside this file instead, so both are given.
+# The guard matters: php_value is unknown to Apache without mod_php and would
+# otherwise bring the whole site down with a 500.
+<IfModule mod_php.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 52M
+    php_value max_file_uploads 30
+    php_value memory_limit 256M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 52M
+    php_value max_file_uploads 30
+    php_value memory_limit 256M
+</IfModule>

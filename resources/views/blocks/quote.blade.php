@@ -1,4 +1,4 @@
-<figure class="pull-quote">
+<figure class="pull-quote fit-{{ $block->setting('image_fit', \App\Support\BlockType::defaultImageFit($block->type)) }}">
     <span class="qmark" aria-hidden="true">&ldquo;</span>
     <div>
         <blockquote>{{ strip_tags($block->body) }}</blockquote>

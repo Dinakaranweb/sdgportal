@@ -68,6 +68,7 @@ class BlockType
                 'fields' => ['title', 'body', 'url', 'link_label'],
             ],
             'quote' => [
+                'image_fit' => 'cover',
                 'label' => 'Quote',
                 'group' => 'Text',
                 'hint' => 'Pull quote with an attribution and optional portrait.',
@@ -87,6 +88,7 @@ class BlockType
                 ],
             ],
             'image' => [
+                'image_fit' => 'natural',
                 'label' => 'Image',
                 'group' => 'Media',
                 'hint' => 'One image with an optional caption and link.',
@@ -95,6 +97,7 @@ class BlockType
                 'labels' => ['title' => 'Caption', 'body' => 'Description'],
             ],
             'gallery' => [
+                'image_fit' => 'cover',
                 'label' => 'Image gallery',
                 'group' => 'Media',
                 'hint' => 'A responsive grid of images.',
@@ -125,16 +128,17 @@ class BlockType
             'documents' => [
                 'label' => 'Document list',
                 'group' => 'Media',
-                'hint' => 'Several files under one heading, each with its own title.',
+                'hint' => 'Several files under one heading, each shown by its own title.',
                 'icon' => 'file',
                 'fields' => ['title', 'subtitle', 'body', 'rows'],
                 'columns' => [
                     'file' => ['label' => 'File', 'type' => 'file'],
-                    'label' => ['label' => 'Title shown', 'type' => 'text'],
-                    'note' => ['label' => 'Note', 'type' => 'text'],
+                    'label' => ['label' => 'Document title', 'type' => 'text'],
+                    'note' => ['label' => 'Note shown underneath', 'type' => 'text'],
                 ],
             ],
             'image_cards' => [
+                'image_fit' => 'cover',
                 'label' => 'Image cards',
                 'group' => 'Media',
                 'hint' => 'Several uploaded pictures shown as cards, each with its own description.',
@@ -148,6 +152,7 @@ class BlockType
                 ],
             ],
             'image_group' => [
+                'image_fit' => 'cover',
                 'label' => 'Image set',
                 'group' => 'Media',
                 'hint' => 'Several pictures together with a single description underneath.',
@@ -159,6 +164,16 @@ class BlockType
                     'image' => ['label' => 'Picture', 'type' => 'file', 'accept' => 'image/*'],
                     'alt' => ['label' => 'Alt text', 'type' => 'text'],
                 ],
+            ],
+            'image_upload' => [
+                'label' => 'Picture upload',
+                'group' => 'Media',
+                'hint' => 'Choose any number of pictures at once and they are laid out for you.',
+                'icon' => 'gallery',
+                'fields' => ['title', 'subtitle', 'uploads', 'body'],
+                'labels' => ['body' => 'Description shown under the pictures'],
+                'image_fit' => 'cover',
+                'image_style' => true,
             ],
             'document_viewer' => [
                 'label' => 'Document in the page',
@@ -181,6 +196,7 @@ class BlockType
                 ],
             ],
             'cards' => [
+                'image_fit' => 'cover',
                 'label' => 'Cards',
                 'group' => 'Links',
                 'hint' => 'Picture cards that combine an image, text and a link.',
@@ -207,6 +223,7 @@ class BlockType
                 ],
             ],
             'cta' => [
+                'image_fit' => 'cover',
                 'label' => 'Call to action',
                 'group' => 'Links',
                 'hint' => 'A banner strip with a heading and a single button.',
@@ -331,6 +348,24 @@ class BlockType
     }
 
     /**
+     * Whether this type takes several pictures in one go rather than a row at
+     * a time.
+     */
+    public static function usesBulkUploads(?string $type): bool
+    {
+        return in_array('uploads', static::get($type)['fields'] ?? [], true);
+    }
+
+    /**
+     * Whether the type lays its items out in a grid, and so is asked how many
+     * should sit on a row.
+     */
+    public static function usesGrid(?string $type): bool
+    {
+        return static::usesRows($type) || static::usesBulkUploads($type);
+    }
+
+    /**
      * Types keyed by the group shown in the editor's type picker.
      */
     public static function grouped(): array
@@ -369,9 +404,6 @@ class BlockType
     }
 
     /**
-     * How tall an embedded document should be.
-     */
-    /**
      * How a set of pictures is laid out.
      */
     public static function imageStyles(): array
@@ -390,6 +422,41 @@ class BlockType
         return (bool) (static::get($type)['image_style'] ?? false);
     }
 
+    /**
+     * How a picture sits in the frame it is given.
+     */
+    public static function imageFits(): array
+    {
+        return [
+            'cover' => 'Fill the frame, cropping the edges',
+            'contain' => 'Show the whole picture inside the frame',
+            'natural' => "Keep the picture's own shape",
+        ];
+    }
+
+    /**
+     * Whether this type shows pictures, and so offers the fit choice.
+     */
+    public static function allowsImageFit(?string $type): bool
+    {
+        return (bool) (static::get($type)['image_fit'] ?? false);
+    }
+
+    /**
+     * The fit a type starts with. A grid of pictures looks even when they are
+     * cropped to a common shape, whereas a single picture standing on its own
+     * is better left at its own proportions.
+     */
+    public static function defaultImageFit(?string $type): string
+    {
+        $declared = static::get($type)['image_fit'] ?? null;
+
+        return is_string($declared) ? $declared : 'cover';
+    }
+
+    /**
+     * How tall an embedded document should be.
+     */
     public static function viewerHeights(): array
     {
         return [

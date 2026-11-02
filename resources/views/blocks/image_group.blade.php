@@ -4,7 +4,7 @@
 @endphp
 
 @if ($pictures->isNotEmpty())
-    <div class="image-set image-set--{{ $style }} cols-{{ $block->setting('columns', '3') }}">
+    <div class="image-set image-set--{{ $style }} cols-{{ $block->setting('columns', '3') }} fit-{{ $block->setting('image_fit', \App\Support\BlockType::defaultImageFit($block->type)) }}">
         @foreach ($pictures as $row)
             <figure class="image-set-item">
                 <img src="{{ media_url($row['image']) }}" alt="{{ $row['alt'] ?? '' }}" loading="lazy">

@@ -27,6 +27,7 @@ class Theme
             'theme_text' => '#17241f',
             'theme_muted' => '#5d6b66',
             'theme_border' => '#e2e8e5',
+            'theme_link' => '#1155cc',
             'theme_header_bg' => '#ffffff',
             'theme_header_text' => '#17241f',
             'theme_utility_bg' => '#0a6b4f',
@@ -112,6 +113,11 @@ class Theme
             '--ink' => Palette::normalise(static::setting('theme_text'), '#17241f'),
             '--muted' => Palette::normalise(static::setting('theme_muted'), '#5d6b66'),
             '--line' => Palette::normalise(static::setting('theme_border'), '#e2e8e5'),
+            // Links written in body text keep the familiar hyperlink blue
+            // rather than the goal colour, so they read as links on any page.
+            '--link' => $link = Palette::normalise(static::setting('theme_link'), '#1155cc'),
+            '--link-hover' => Palette::shade($link, -22),
+            '--link-visited' => Palette::shade($link, -38),
             '--header-bg' => Palette::normalise(static::setting('theme_header_bg'), '#ffffff'),
             '--header-ink' => Palette::normalise(static::setting('theme_header_text'), '#17241f'),
             '--utility-bg' => Palette::normalise(static::setting('theme_utility_bg'), $primary),

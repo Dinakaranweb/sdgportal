@@ -10,6 +10,7 @@ use App\Models\GoalPage;
 use App\Models\Media;
 use App\Models\Page;
 use App\Support\BlockType;
+use App\Support\Uploads;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -55,7 +56,7 @@ class BlockController extends Controller
             'type' => $type,
             'is_active' => true,
             'sort_order' => (int) $owner->blocks()->max('sort_order') + 1,
-            'settings' => ['background' => 'none', 'width' => 'normal', 'columns' => '3'],
+            'settings' => ['background' => 'none', 'width' => 'normal', 'columns' => '3', 'image_fit' => 'cover'],
         ]);
 
         return view('admin.blocks.form', $this->formData($ownerType, $owner, $block));
@@ -176,10 +177,13 @@ class BlockController extends Controller
             'url' => ['nullable', 'string', 'max:500'],
             'link_label' => ['nullable', 'string', 'max:120'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:8192'],
-            'file' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip,jpg,jpeg,png'],
+            'image' => Uploads::imageRules(),
+            'file' => Uploads::fileRules(),
             'rows' => ['nullable', 'array'],
-            'rows.*.upload' => ['nullable', 'file', 'max:20480', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip,jpg,jpeg,png,gif,webp'],
+            'rows.*.upload' => Uploads::fileRules(),
+            'uploads' => ['nullable', 'array', 'max:60'],
+            'uploads.*' => Uploads::imageRules(),
+            'kept' => ['nullable', 'array'],
             'headers' => ['nullable', 'array'],
             'table_rows' => ['nullable', 'array'],
             'settings' => ['nullable', 'array'],
@@ -196,7 +200,7 @@ class BlockController extends Controller
         $data['data'] = $this->payload($request, $type);
         $data['settings'] = $this->settings($request);
 
-        unset($data['image'], $data['file'], $data['rows'], $data['headers'], $data['table_rows']);
+        unset($data['image'], $data['file'], $data['rows'], $data['headers'], $data['table_rows'], $data['uploads'], $data['kept']);
 
         return $data;
     }
@@ -218,6 +222,10 @@ class BlockController extends Controller
                 ->all();
 
             return ($headers || $rows) ? ['headers' => $headers, 'rows' => $rows] : null;
+        }
+
+        if (BlockType::usesBulkUploads($type)) {
+            return $this->uploadedPictures($request);
         }
 
         if (! BlockType::usesRows($type)) {
@@ -272,6 +280,45 @@ class BlockController extends Controller
         return $rows ? ['rows' => $rows] : null;
     }
 
+    /**
+     * Rows for a block whose pictures are chosen several at a time.
+     *
+     * The ones already on the block are kept in the order they were in, minus
+     * any ticked for removal, and whatever has just been chosen is added after
+     * them. Nothing is uploaded twice: an existing picture travels back as its
+     * stored path rather than as a file.
+     */
+    protected function uploadedPictures(Request $request): ?array
+    {
+        $rows = [];
+
+        foreach ((array) $request->input('kept', []) as $kept) {
+            if (! is_array($kept) || blank($kept['image'] ?? null)) {
+                continue;
+            }
+
+            if (filled($kept['remove'] ?? null)) {
+                continue;
+            }
+
+            $rows[] = [
+                'image' => (string) $kept['image'],
+                'alt' => trim((string) ($kept['alt'] ?? '')),
+            ];
+        }
+
+        foreach ((array) $request->file('uploads', []) as $upload) {
+            if ($upload && $upload->isValid()) {
+                $rows[] = [
+                    'image' => $this->storeUpload($upload, 'blocks'),
+                    'alt' => '',
+                ];
+            }
+        }
+
+        return $rows ? ['rows' => $rows] : null;
+    }
+
     protected function settings(Request $request): array
     {
         $input = (array) $request->input('settings', []);
@@ -293,6 +340,7 @@ class BlockController extends Controller
             'columns' => $choose('columns', array_keys(BlockType::columnCounts()), '3'),
             'viewer_height' => $choose('viewer_height', array_keys(BlockType::viewerHeights()), 'medium'),
             'image_style' => $choose('image_style', array_keys(BlockType::imageStyles()), 'cards'),
+            'image_fit' => $choose('image_fit', array_keys(BlockType::imageFits()), BlockType::defaultImageFit($request->input('type'))),
             'hide_title' => (bool) ($input['hide_title'] ?? false),
             'anchor' => preg_replace('/[^A-Za-z0-9\-_]/', '', (string) ($input['anchor'] ?? '')) ?: null,
         ];

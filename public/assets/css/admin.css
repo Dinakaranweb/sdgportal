@@ -736,6 +736,18 @@ table.list .title-cell code { font-size: .74rem; color: var(--ad-muted); }
 .note-editor .note-editable:focus { outline: none; }
 .note-editor .note-editable p { margin: 0 0 .8em; }
 .note-editor .note-editable h2 { font-size: 1.25rem; }
+
+/* A link is shown in the editor the same hyperlink blue it will have on the
+   page, so what is written here is what is seen there. */
+.note-editor .note-editable a {
+    color: #1155cc;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Body copy is justified on the page, so it is justified here too. */
+.note-editor .note-editable p,
+.note-editor .note-editable li { text-align: justify; hyphens: auto; }
 .note-editor .note-editable h3 { font-size: 1.08rem; }
 .note-editor .note-editable h4 { font-size: 1rem; }
 .note-editor .note-editable ul,
@@ -791,3 +803,47 @@ table.list .title-cell code { font-size: .74rem; color: var(--ad-muted); }
     border: 1px solid var(--ad-line);
     flex: none;
 }
+
+/* Several pictures chosen at once ------------------------------------------ */
+
+.bulk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: .7rem;
+    margin-top: .6rem;
+}
+
+.bulk-item {
+    display: grid;
+    gap: .35rem;
+    padding: .5rem;
+    border: 1px solid var(--ad-line);
+    border-radius: 8px;
+    background: var(--ad-surface);
+    min-width: 0;
+}
+
+.bulk-item.is-new { border-color: var(--ad-brand); }
+
+.bulk-item code {
+    font-size: .72rem;
+    color: var(--ad-muted);
+    overflow-wrap: anywhere;
+}
+
+.bulk-item input[type=text] { font-size: .78rem; padding: .3rem .45rem; }
+
+.bulk-shot {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    border-radius: 6px;
+    background: var(--ad-bg);
+    overflow: hidden;
+    color: var(--ad-muted);
+}
+
+.bulk-shot img { width: 100%; height: 100%; object-fit: cover; }
+
+.bulk-picked { margin-top: .9rem; }
+.bulk-saved { margin-top: 1.1rem; }

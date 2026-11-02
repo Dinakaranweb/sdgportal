@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Uploads;
 use Illuminate\Console\Command;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ class CheckInstall extends Command
     {
         $this->addresses();
         $this->assetFiles();
+        $this->uploadLimits();
         $this->compiledViews();
         $this->cachedConfig();
         $this->uploads();
@@ -135,6 +137,32 @@ class CheckInstall extends Command
 
         if ($unstamped) {
             $this->problems[] = count($unstamped).' file(s) could not be found on disk, so the version stamp falls back to the deployment time: '.implode(', ', $unstamped).'. Check that the public folder was uploaded in full.';
+        }
+    }
+
+    /**
+     * Whether the server will accept an upload as large as the portal allows.
+     * PHP refuses an oversized request before the application sees it, so a
+     * server set lower than the portal is the limit that counts.
+     */
+    protected function uploadLimits(): void
+    {
+        $this->newLine();
+        $this->components->twoColumnDetail('<options=bold>Uploads allowed</>', '');
+
+        $wanted = Uploads::MAX_KILOBYTES;
+
+        foreach (['upload_max_filesize', 'post_max_size', 'max_file_uploads', 'memory_limit'] as $setting) {
+            $this->components->twoColumnDetail($setting, (string) (ini_get($setting) ?: 'not set'));
+        }
+
+        $this->components->twoColumnDetail('The portal asks for', round($wanted / 1024).' MB');
+        $this->components->twoColumnDetail('The server allows', Uploads::limitInWords());
+
+        $server = Uploads::serverKilobytes();
+
+        if ($server !== null && $server < $wanted) {
+            $this->problems[] = 'The server accepts only '.round($server / 1024).' MB per upload, below the '.round($wanted / 1024).' MB the portal offers, so a larger file is refused before it arrives. Raise upload_max_filesize and post_max_size (on cPanel: MultiPHP INI Editor), or check that public/.user.ini was uploaded.';
         }
     }
 

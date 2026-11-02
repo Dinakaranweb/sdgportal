@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Concerns;
 
+use App\Support\Svg;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -40,9 +41,25 @@ trait HandlesUploads
 
     protected function storeUpload($file, string $folder): string
     {
+        $extension = strtolower($file->getClientOriginalExtension());
         $name = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
         $name = Str::limit($name ?: 'file', 60, '');
-        $fileName = $name.'-'.Str::lower(Str::random(6)).'.'.strtolower($file->getClientOriginalExtension());
+        $fileName = $name.'-'.Str::lower(Str::random(6)).'.'.$extension;
+
+        // A vector drawing is markup, so it is cleaned of anything that could
+        // run before it is kept. One that cannot be read is stored as it came,
+        // because refusing it here would be a silent failure; the validation
+        // rules are where a file is turned away.
+        if (Svg::looksLikeSvg($extension)) {
+            $cleaned = Svg::clean((string) file_get_contents($file->getRealPath()));
+
+            if ($cleaned !== null) {
+                $path = 'uploads/'.$folder.'/'.$fileName;
+                media_disk()->put($path, $cleaned);
+
+                return $path;
+            }
+        }
 
         return $file->storeAs('uploads/'.$folder, $fileName, media_disk_name());
     }

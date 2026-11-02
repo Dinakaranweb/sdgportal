@@ -154,29 +154,6 @@ if (! function_exists('opens_away')) {
     }
 }
 
-if (! function_exists('readable_size')) {
-    /**
-     * Format a byte count for display next to a download.
-     */
-    function readable_size(?int $bytes): ?string
-    {
-        if (! $bytes) {
-            return null;
-        }
-
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $size = (float) $bytes;
-        $i = 0;
-
-        while ($size >= 1024 && $i < count($units) - 1) {
-            $size /= 1024;
-            $i++;
-        }
-
-        return round($size, $size >= 10 || $i === 0 ? 0 : 1).' '.$units[$i];
-    }
-}
-
 if (! function_exists('is_pdf')) {
     /**
      * True when a path or URL points at a PDF.
@@ -288,6 +265,31 @@ if (! function_exists('embed_html')) {
     }
 }
 
+if (! function_exists('mark_text_links')) {
+    /**
+     * Mark the links inside a piece of written text.
+     *
+     * A link typed into the editor arrives as a bare <a href>, which would
+     * otherwise be left to the stylesheet's rule for every link on the site
+     * and so take the page's own colour. Marking it as it is rendered means a
+     * link is recognised wherever the text is placed, instead of the
+     * stylesheet having to know the name of every container that written text
+     * can appear in; the earlier attempt listed those containers and missed
+     * several of them.
+     *
+     * A link that already carries a class was put there by a template for a
+     * purpose of its own, so it is left as it is.
+     */
+    function mark_text_links(string $html): string
+    {
+        return (string) preg_replace(
+            '~<a\b(?![^>]*\sclass\s*=)~i',
+            '<a class="text-link"',
+            $html
+        );
+    }
+}
+
 if (! function_exists('rich_text')) {
     /**
      * Render editor text, wrapping plain text in paragraphs when needed.
@@ -301,13 +303,15 @@ if (! function_exists('rich_text')) {
         $hasMarkup = (bool) preg_match('~<(p|ul|ol|h[2-6]|table|div|blockquote|figure)\b~i', $text);
 
         if ($hasMarkup) {
-            return clean_html($text);
+            return mark_text_links(clean_html($text));
         }
 
-        return collect(preg_split('/\R{2,}/', trim($text)))
-            ->filter()
-            ->map(fn ($para) => '<p>'.nl2br(e(trim($para))).'</p>')
-            ->implode('');
+        return mark_text_links(
+            collect(preg_split('/\R{2,}/', trim($text)))
+                ->filter()
+                ->map(fn ($para) => '<p>'.nl2br(e(trim($para))).'</p>')
+                ->implode('')
+        );
     }
 }
 

@@ -256,6 +256,65 @@
         });
     }
 
+    /* ---- several pictures chosen at once ----------------------------- */
+
+    document.querySelectorAll('[data-bulk-uploads]').forEach(function (field) {
+        var input = field.querySelector('[data-bulk-input]');
+        var preview = field.querySelector('[data-bulk-preview]');
+        var thumbs = field.querySelector('[data-bulk-thumbs]');
+        var count = field.querySelector('[data-bulk-count]');
+
+        if (!input || !preview || !thumbs) {
+            return;
+        }
+
+        input.addEventListener('change', function () {
+            var files = Array.prototype.slice.call(input.files || []);
+
+            // Addresses from a previous choice are released, or the browser
+            // holds on to the files for as long as the page is open.
+            thumbs.querySelectorAll('img[data-bulk-url]').forEach(function (image) {
+                URL.revokeObjectURL(image.src);
+            });
+
+            thumbs.innerHTML = '';
+            preview.hidden = files.length === 0;
+
+            if (count) {
+                count.textContent = files.length === 1
+                    ? '1 picture ready to be saved'
+                    : files.length + ' pictures ready to be saved';
+            }
+
+            files.forEach(function (file) {
+                var item = document.createElement('div');
+                item.className = 'bulk-item is-new';
+
+                var shot = document.createElement('span');
+                shot.className = 'bulk-shot';
+
+                // A vector drawing has no bitmap to read, so it is named
+                // rather than drawn.
+                if (file.type && file.type.indexOf('image/') === 0) {
+                    var image = document.createElement('img');
+                    image.setAttribute('data-bulk-url', '1');
+                    image.src = URL.createObjectURL(file);
+                    image.alt = '';
+                    shot.appendChild(image);
+                } else {
+                    shot.textContent = '?';
+                }
+
+                var name = document.createElement('code');
+                name.textContent = file.name;
+
+                item.appendChild(shot);
+                item.appendChild(name);
+                thumbs.appendChild(item);
+            });
+        });
+    });
+
     /* ---- media picker ------------------------------------------------ */
 
     document.querySelectorAll('[data-media-field]').forEach(function (field) {

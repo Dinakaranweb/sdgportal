@@ -107,24 +107,6 @@ class ContentBlock extends Model
         return $this->file_path ? media_url($this->file_path) : null;
     }
 
-    public function readableFileSize(): ?string
-    {
-        if (! $this->file_size) {
-            return null;
-        }
-
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $size = (float) $this->file_size;
-        $i = 0;
-
-        while ($size >= 1024 && $i < count($units) - 1) {
-            $size /= 1024;
-            $i++;
-        }
-
-        return round($size, $size >= 10 || $i === 0 ? 0 : 1).' '.$units[$i];
-    }
-
     /**
      * Every stored file this block points at, including the ones held inside
      * repeatable rows such as a document list.

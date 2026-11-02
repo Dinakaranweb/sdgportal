@@ -61,6 +61,7 @@ class SettingSeeder extends Seeder
             ['group' => 'theme', 'key' => 'theme_text', 'type' => 'color', 'label' => 'Body text', 'value' => $theme['theme_text']],
             ['group' => 'theme', 'key' => 'theme_muted', 'type' => 'color', 'label' => 'Muted text', 'value' => $theme['theme_muted']],
             ['group' => 'theme', 'key' => 'theme_border', 'type' => 'color', 'label' => 'Border colour', 'value' => $theme['theme_border']],
+            ['group' => 'theme', 'key' => 'theme_link', 'type' => 'color', 'label' => 'Link colour', 'hint' => 'Used for links written inside text. Buttons and menus follow the brand colour.', 'value' => $theme['theme_link']],
             ['group' => 'theme', 'key' => 'theme_header_bg', 'type' => 'color', 'label' => 'Header background', 'value' => $theme['theme_header_bg']],
             ['group' => 'theme', 'key' => 'theme_header_text', 'type' => 'color', 'label' => 'Header text', 'value' => $theme['theme_header_text']],
             ['group' => 'theme', 'key' => 'theme_utility_bg', 'type' => 'color', 'label' => 'Utility bar background', 'value' => $theme['theme_utility_bg']],

@@ -22,12 +22,9 @@
        @endif>
         <span class="ficon" aria-hidden="true"><x-icon name="file" size="28" /></span>
         <span>
+            {{-- The heading given for the block is the document's title; the
+                 file's own name is only a fallback. --}}
             <span class="fname">{{ $block->title ?: $label }}</span>
-            <span class="fmeta">
-                {{ strtoupper(pathinfo($label, PATHINFO_EXTENSION) ?: 'Link') }}
-                @if ($size = $block->readableFileSize()) &middot; {{ $size }} @endif
-                @if ($pdf) &middot; opens in a new tab @endif
-            </span>
         </span>
         <span class="fdl">
             {{ $block->link_label ?: ($pdf ? 'View' : 'Download') }}

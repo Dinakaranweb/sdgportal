@@ -38,8 +38,8 @@
             @php
                 // A column may narrow what it takes, so an image row only
                 // offers images. Picture columns preview what is chosen.
-                $accept = $column['accept'] ?? '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,image/*';
-                $picture = str_starts_with($accept, 'image/');
+                $accept = $column['accept'] ?? \App\Support\Uploads::fileAccept();
+                $picture = ($column['accept'] ?? null) === 'image/*';
                 $options = $picture ? $library->filter->isImage() : $library;
             @endphp
 
@@ -65,7 +65,7 @@
                 <input type="file" data-rep-field="upload" data-row-file-input
                        @if ($index !== null) name="{{ $nameFor('upload') }}" @endif
                        @if ($picture) data-row-file-picture @endif
-                       accept="{{ $accept }}">
+                       accept="{{ $picture ? \App\Support\Uploads::imageAccept() : $accept }}">
 
                 @if ($options->isNotEmpty())
                     <select data-row-file-pick class="row-file-pick">

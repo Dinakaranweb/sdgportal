@@ -21,8 +21,7 @@
         <figcaption>
             <span>
                 <x-icon name="file" size="15" />
-                {{ $name ?: 'Document' }}
-                @if ($size = $block->readableFileSize()) &middot; {{ $size }} @endif
+                {{ $block->title ?: ($name ?: 'Document') }}
             </span>
             <a href="{{ portal_url($src) }}" target="_blank" rel="noopener">
                 Open in a new tab <x-icon name="external" size="14" />

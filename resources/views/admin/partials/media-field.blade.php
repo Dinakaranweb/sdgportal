@@ -10,10 +10,10 @@
     $name = $name ?? 'image';
     $value = $value ?? null;
     $label = $label ?? 'Image';
-    $accept = $accept ?? 'image/*';
+    $accept = $accept ?? \App\Support\Uploads::imageAccept();
     $library = collect($library ?? []);
     $current = media_url($value);
-    $isImage = $current && ! preg_match('/\.(pdf|docx?|xlsx?|pptx?|csv|txt|zip)$/i', (string) $value);
+    $isImage = $current && in_array(strtolower(pathinfo((string) $value, PATHINFO_EXTENSION)), \App\Support\Uploads::imageExtensions(), true);
 @endphp
 
 <div class="field" data-media-field>
@@ -42,6 +42,7 @@
         <div class="picker">
             <input type="file" name="{{ $name }}" accept="{{ $accept }}">
             <input type="hidden" name="{{ $name }}_path" value="" data-media-path>
+            <p class="hint">Up to {{ \App\Support\Uploads::limitInWords() }} per file.</p>
 
             @if ($library->isNotEmpty())
                 <div>

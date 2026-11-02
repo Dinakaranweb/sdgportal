@@ -113,10 +113,15 @@
                             @include('admin.partials.media-field', [
                                 'name' => 'file',
                                 'value' => $block->file_path,
-                                'label' => 'Document',
+                                'label' => $label('file', 'Document'),
                                 'library' => $library,
-                                'accept' => '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.zip,image/*',
+                                'accept' => \App\Support\Uploads::fileAccept(),
                             ])
+                        @endif
+
+                        {{-- Several pictures at once --------------------------------------- --}}
+                        @if (in_array('uploads', $fields, true))
+                            @include('admin.blocks.uploads-field', ['block' => $block])
                         @endif
 
                         {{-- Repeatable rows ------------------------------------------------ --}}
@@ -261,6 +266,18 @@
                             </select>
                         </div>
 
+                        @if (BlockType::allowsImageFit($block->type))
+                            <div class="field">
+                                <label for="image_fit">Picture fit</label>
+                                <select id="image_fit" name="settings[image_fit]">
+                                    @foreach (BlockType::imageFits() as $key => $text)
+                                        <option value="{{ $key }}" @selected(old('settings.image_fit', $block->setting('image_fit', BlockType::defaultImageFit($block->type))) === $key)>{{ $text }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="hint">"Fill the frame" keeps every picture the same shape. "Show the whole picture" never crops, so a tall and a wide picture both sit in a frame of the same size.</p>
+                            </div>
+                        @endif
+
                         @if (BlockType::allowsImageStyle($block->type))
                             <div class="field">
                                 <label for="image_style">Picture layout</label>
@@ -283,12 +300,12 @@
                             </div>
                         @endif
 
-                        @if (in_array('rows', $fields, true))
+                        @if (BlockType::usesGrid($block->type))
                             <div class="field">
                                 <label for="columns">Items per row</label>
                                 <select id="columns" name="settings[columns]">
                                     @foreach (BlockType::columnCounts() as $key => $text)
-                                        <option value="{{ $key }}" @selected((string) old('settings.columns', $block->setting('columns', '3')) === $key)>{{ $text }}</option>
+                                        <option value="{{ $key }}" @selected((string) old('settings.columns', $block->setting('columns', '3')) === (string) $key)>{{ $text }}</option>
                                     @endforeach
                                 </select>
                             </div>

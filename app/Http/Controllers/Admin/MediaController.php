@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Support\Uploads;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,6 +13,8 @@ use Illuminate\Support\Str;
 
 class MediaController extends Controller
 {
+    use HandlesUploads;
+
     public function index(Request $request): View
     {
         $media = Media::query()
@@ -32,20 +36,20 @@ class MediaController extends Controller
     {
         $request->validate([
             'files' => ['required', 'array', 'max:20'],
-            'files.*' => ['file', 'max:20480', 'mimes:jpg,jpeg,png,gif,webp,svg,pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,zip'],
+            'files.*' => Uploads::fileRules(true),
             'alt_text' => ['nullable', 'string', 'max:190'],
         ]);
 
         $stored = 0;
 
         foreach ($request->file('files', []) as $file) {
-            $base = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'file';
-            $fileName = Str::limit($base, 60, '').'-'.Str::lower(Str::random(6)).'.'.strtolower($file->getClientOriginalExtension());
-            $path = $file->storeAs('uploads/library', $fileName, media_disk_name());
+            // Stored through the shared handler, so a drawing is cleaned on the
+            // way in here exactly as it is everywhere else.
+            $path = $this->storeUpload($file, 'library');
 
             Media::create([
                 'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-                'file_name' => $fileName,
+                'file_name' => basename($path),
                 'path' => $path,
                 'mime_type' => $file->getClientMimeType(),
                 'size' => $file->getSize(),

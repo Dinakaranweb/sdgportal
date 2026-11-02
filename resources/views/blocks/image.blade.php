@@ -1,7 +1,7 @@
 @php $src = $block->image_url; @endphp
 
 @if ($src)
-    <figure class="figure-block">
+    <figure class="figure-block fit-{{ $block->setting('image_fit', \App\Support\BlockType::defaultImageFit($block->type)) }}">
         @if (filled($block->url))
             <a href="{{ portal_url($block->url) }}" @if (opens_away($block->url)) target="_blank" rel="noopener" @endif>
                 <img src="{{ $src }}" alt="{{ $block->image_alt ?: $block->title }}" loading="lazy">

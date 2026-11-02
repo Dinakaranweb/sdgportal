@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HandlesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Support\Uploads;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 /**
  * Receives images dropped or pasted into the rich text editor. Storing them as
@@ -15,15 +16,17 @@ use Illuminate\Support\Str;
  */
 class EditorController extends Controller
 {
+    use HandlesUploads;
+
     public function upload(Request $request): JsonResponse
     {
         // Answered in JSON whatever happens, because the editor reads the
         // response directly and cannot follow a redirect to the form.
         $validator = validator($request->all(), [
-            'file' => ['required', 'image', 'max:8192'],
+            'file' => Uploads::imageRules(true),
         ], [
-            'file.image' => 'Only image files can be placed in the text.',
-            'file.max' => 'That image is larger than the 8 MB limit.',
+            'file.mimes' => 'Only image files can be placed in the text.',
+            'file.max' => 'That image is larger than the '.Uploads::limitInWords().' limit.',
         ]);
 
         if ($validator->fails()) {
@@ -34,14 +37,12 @@ class EditorController extends Controller
 
         $file = $request->file('file');
 
-        $base = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'image';
-        $name = Str::limit($base, 60, '').'-'.Str::lower(Str::random(6)).'.'.strtolower($file->getClientOriginalExtension());
-        $path = $file->storeAs('uploads/editor', $name, media_disk_name());
+        $path = $this->storeUpload($file, 'editor');
 
         // Recorded in the library so the file can be found and reused later.
         Media::create([
             'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
-            'file_name' => $name,
+            'file_name' => basename($path),
             'path' => $path,
             'mime_type' => $file->getClientMimeType(),
             'size' => $file->getSize(),
